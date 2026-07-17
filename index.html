@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111827" />
+    <title>Luma Search Abstraction — sua pesquisa, do seu jeito</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <div class="app-shell">
+      <aside class="sidebar glass" id="sidebar" aria-label="Sites de pesquisa">
+        <div class="brand-row">
+          <a class="brand" href="#" aria-label="Página inicial Luma Search Abstraction">
+            <span class="brand-mark" aria-hidden="true">L</span>
+            <span>Luma Search Abstraction</span>
+          </a>
+          <button class="icon-button" id="closeSidebar" type="button" aria-label="Fechar menu">×</button>
+        </div>
+
+        <div class="sidebar-heading">
+          <div>
+            <span class="eyebrow" id="enginesLabel">Mecanismos</span>
+            <h2 id="whereSearchLabel">Onde pesquisar</h2>
+          </div>
+          <button class="icon-button" id="openSiteDialog" type="button" aria-label="Cadastrar novo site" title="Novo site">+</button>
+        </div>
+
+        <p class="selection-hint" id="selectionHint"><span class="hint-dot"></span> Clique no site para torná-lo principal</p>
+        <div class="category-filters" id="categoryFilters" aria-label="Filtrar por categoria"></div>
+        <label class="shortcut-filter"><input id="shortcutFilter" type="checkbox" /> <span id="shortcutFilterLabel">Exibir somente atalhos</span></label>
+        <div class="site-list" id="siteList"></div>
+
+        <div class="sidebar-footer">
+          <span class="batch-footer-actions">
+            <button class="text-button" id="selectAll" type="button">Selecionar todos</button>
+            <button class="text-button clear-button" id="clearBatch" type="button">Limpar</button>
+          </span>
+          <span id="batchCount">0 no lote</span>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <button class="icon-button menu-button" id="openSidebar" type="button" aria-label="Abrir menu">☰</button>
+          <div class="datetime-card">
+            <div class="date-block">
+              <span id="greeting">Olá</span>
+              <strong id="currentDate"></strong>
+            </div>
+            <div class="clock" id="clock" aria-label="Horário atual"></div>
+          </div>
+          <label class="language-picker" aria-label="Idioma" title="Idioma">
+            <span aria-hidden="true">文</span>
+            <strong id="languageLabel">Idioma</strong>
+            <select class="language-select" id="languageSelect" aria-label="Selecionar idioma"></select>
+          </label>
+          <button class="icon-button" id="openPreferences" type="button" aria-label="Personalizar página" title="Personalizar">⚙</button>
+        </header>
+
+        <section class="hero">
+          <div class="hero-copy">
+            <h1 id="heroTitle">O que vamos<br /><em>descobrir hoje?</em></h1>
+            <p id="heroDescription">Pesquise no seu site favorito ou explore vários lugares de uma só vez.</p>
+          </div>
+
+          <form class="search-card glass" id="searchForm">
+            <div class="active-site" id="activeSiteLabel"></div>
+            <label class="search-field">
+              <span class="search-icon" aria-hidden="true">⌕</span>
+              <input id="searchInput" type="search" autocomplete="off" placeholder="Digite sua pesquisa..." aria-label="Termo de pesquisa" />
+              <kbd>Enter</kbd>
+            </label>
+            <div class="search-actions">
+              <button class="secondary-button" id="batchSearch" type="button">
+                <span aria-hidden="true">⊞</span> Pesquisar em lote <small id="batchBadge">0</small>
+              </button>
+              <button class="primary-button" id="primarySearch" type="submit">Pesquisar <span aria-hidden="true">→</span></button>
+            </div>
+            <p class="feedback" id="feedback" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+
+        <footer><span>Luma Search Abstraction · <span id="creatorCredit">criado por Wesley0010012</span></span><span id="storageNotice">Seus sites ficam salvos apenas neste navegador.</span></footer>
+      </main>
+    </div>
+
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <dialog id="siteDialog">
+      <form class="dialog-card glass" id="siteForm">
+        <div class="dialog-header">
+          <div><span class="eyebrow">Personalize</span><h2>Adicionar site</h2></div>
+          <button class="icon-button" id="closeSiteDialog" type="button" aria-label="Fechar">×</button>
+        </div>
+        <p id="siteUrlHint">Use <code>{query}</code> no ponto em que a pesquisa deve aparecer.</p>
+        <label>Nome do site<input id="siteName" name="name" required maxlength="28" placeholder="Ex.: Stack Overflow" /></label>
+        <label><span id="siteUrlLabel">URL de pesquisa</span><input id="siteSearchUrl" name="searchUrl" required type="url" placeholder="https://exemplo.com/search?q={query}" /></label>
+        <label>URL do ícone <span>(opcional)</span><input id="siteIcon" name="icon" type="url" placeholder="https://exemplo.com/favicon.ico" /></label>
+        <div class="upload-field compact-upload">
+          <span>Ou envie um ícone PNG, JPG ou JPEG</span>
+          <input id="siteIconFile" type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg" />
+          <small>Até 1 MB. O arquivo será salvo neste navegador.</small>
+        </div>
+        <label>Categoria
+          <span class="category-field-row">
+            <select id="siteCategory" name="category" required></select>
+            <button class="icon-button" id="openCategoryDialog" type="button" aria-label="Criar categoria" title="Criar categoria">+</button>
+          </span>
+        </label>
+        <label class="toggle-label"><input id="siteIsShortcut" name="shortcut" type="checkbox" /> Este site é apenas um atalho</label>
+        <label class="toggle-label"><input id="siteRequiresAuth" name="auth" type="checkbox" /> Este site requer autenticação</label>
+        <div class="dialog-actions">
+          <button class="secondary-button" id="cancelSiteDialog" type="button">Cancelar</button>
+          <button class="primary-button" type="submit">Salvar site</button>
+        </div>
+        <p class="form-error" id="formError" role="alert"></p>
+      </form>
+    </dialog>
+
+    <dialog id="categoryDialog">
+      <form class="dialog-card glass" id="categoryForm">
+        <div class="dialog-header">
+          <div><span class="eyebrow">Organização</span><h2>Nova categoria</h2></div>
+          <button class="icon-button" id="closeCategoryDialog" type="button" aria-label="Fechar">×</button>
+        </div>
+        <p>Crie uma categoria para organizar seus sites e ferramentas.</p>
+        <label>Nome da categoria<input id="categoryName" required maxlength="32" placeholder="Ex.: Estudos" /></label>
+        <div class="dialog-actions">
+          <button class="secondary-button" id="cancelCategoryDialog" type="button">Cancelar</button>
+          <button class="primary-button" type="submit">Criar categoria</button>
+        </div>
+        <p class="form-error" id="categoryError" role="alert"></p>
+      </form>
+    </dialog>
+
+    <dialog id="preferencesDialog">
+      <form class="dialog-card glass" id="preferencesForm">
+        <div class="dialog-header">
+          <div><span class="eyebrow">Seu espaço</span><h2>Personalizar</h2></div>
+          <button class="icon-button" id="closePreferences" type="button" aria-label="Fechar">×</button>
+        </div>
+        <label>Como devemos chamar você?<input id="displayName" maxlength="30" placeholder="Seu nome" /></label>
+        <div class="color-grid">
+          <label>Cor primária<input id="accentColor" class="color-input" type="color" value="#a8e063" /></label>
+          <label>Cor secundária<input id="secondaryColor" class="color-input" type="color" value="#56ab91" /></label>
+        </div>
+        <label>Imagem de fundo por link<input id="backgroundUrl" type="url" placeholder="https://exemplo.com/imagem.jpg" /></label>
+        <div class="upload-field">
+          <span>Ou envie uma imagem PNG, JPG ou JPEG</span>
+          <input id="backgroundFile" type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg" />
+          <small>Até 4 MB. A imagem fica somente neste navegador.</small>
+        </div>
+        <label class="toggle-label"><input id="showClock" type="checkbox" checked /> Exibir relógio</label>
+        <div class="dialog-actions">
+          <button class="secondary-button remove-background" id="removeBackground" type="button">Remover imagem</button>
+          <button class="secondary-button" id="resetPreferences" type="button">Restaurar</button>
+          <button class="primary-button" type="submit">Aplicar</button>
+        </div>
+        <p class="form-error" id="preferencesError" role="alert"></p>
+      </form>
+    </dialog>
+
+    <dialog id="popupDialog">
+      <form class="dialog-card glass popup-permission-card" id="popupForm">
+        <div class="popup-symbol" aria-hidden="true">↗</div>
+        <div class="dialog-header popup-header">
+          <div><span class="eyebrow">Novas abas</span><h2>Permitir pop-ups?</h2></div>
+          <button class="icon-button" id="closePopupDialog" type="button" aria-label="Fechar">×</button>
+        </div>
+        <p>A pesquisa em lote precisa abrir uma nova guia para cada site selecionado. Seu navegador poderá solicitar uma confirmação adicional.</p>
+        <label class="toggle-label"><input id="rememberPopupPermission" type="checkbox" /> Não perguntar novamente neste navegador</label>
+        <div class="dialog-actions">
+          <button class="secondary-button" id="cancelPopupDialog" type="button">Agora não</button>
+          <button class="primary-button" type="submit">Permitir e continuar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
