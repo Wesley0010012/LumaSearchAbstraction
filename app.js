@@ -267,4 +267,7 @@ function updateTime() {
   $("#clock").textContent = new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit", second: "2-digit" }).format(now);
 }
 
-applyPreferences(); applyLanguage(); setInterval(updateTime, 1000); $("#searchInput").focus();
+applyPreferences(); applyLanguage(); setInterval(updateTime, 1000);
+// Opening a page with the software keyboard already visible is especially
+// disruptive on iPhone. Keep the desktop convenience without forcing it on touch.
+if (window.matchMedia("(min-width: 901px) and (pointer: fine)").matches) $("#searchInput").focus();
