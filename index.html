@@ -33,6 +33,14 @@
         </div>
 
         <p class="selection-hint" id="selectionHint"><span class="hint-dot"></span> Clique no site para torná-lo principal</p>
+        <label class="tool-search">
+          <svg class="tool-search-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="6.5"></circle>
+            <path d="m16 16 4 4"></path>
+          </svg>
+          <span class="sr-only">Buscar ferramenta por nome</span>
+          <input id="toolNameFilter" type="search" autocomplete="off" placeholder="Buscar ferramenta..." aria-label="Buscar ferramenta por nome" />
+        </label>
         <div class="category-filters" id="categoryFilters" aria-label="Filtrar por categoria"></div>
         <label class="shortcut-filter"><input id="shortcutFilter" type="checkbox" /> <span id="shortcutFilterLabel">Exibir somente atalhos</span></label>
         <div class="site-list" id="siteList"></div>
@@ -61,6 +69,8 @@
             <strong id="languageLabel">Idioma</strong>
             <select class="language-select" id="languageSelect" aria-label="Selecionar idioma"></select>
           </label>
+          <button class="ai-chat-trigger" id="openAiChat" type="button"><span aria-hidden="true">✦</span> <span id="aiChatTriggerLabel">Chat IA</span></button>
+          <button class="speed-test-trigger" id="openSpeedTest" type="button"><span aria-hidden="true">↕</span> Speed test</button>
           <button class="icon-button" id="openPreferences" type="button" aria-label="Personalizar página" title="Personalizar">⚙</button>
         </header>
 
@@ -92,6 +102,69 @@
     </div>
 
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <dialog class="speed-test-dialog" id="speedTestDialog">
+      <section class="speed-test-card glass" aria-labelledby="speedTestTitle">
+        <header class="dialog-header">
+          <div><span class="eyebrow">Measurement Lab · NDT7</span><h2 id="speedTestTitle">Teste de velocidade</h2></div>
+          <button class="icon-button" id="closeSpeedTest" type="button" aria-label="Fechar teste">×</button>
+        </header>
+        <p class="speed-test-intro">Meça a capacidade desta conexão usando um servidor público próximo.</p>
+        <div class="speed-test-gauge" id="speedTestProgress" aria-hidden="true"><div><strong id="speedTestGaugeValue">Pronto</strong><small>NDT7</small></div></div>
+        <strong class="speed-test-status" id="speedTestStatus" role="status" aria-live="polite">Autorize e inicie a medição.</strong>
+        <div class="speed-test-results">
+          <article><span class="metric-icon download">↓</span><small>Download</small><strong><span id="speedDownload">—</span> <em>Mbps</em></strong></article>
+          <article><span class="metric-icon upload">↑</span><small>Upload</small><strong><span id="speedUpload">—</span> <em>Mbps</em></strong></article>
+          <article><span class="metric-icon latency">⌁</span><small>Latência</small><strong><span id="speedLatency">—</span> <em>ms</em></strong></article>
+        </div>
+        <p class="speed-test-server" id="speedTestServer">Servidor será escolhido automaticamente</p>
+        <label class="speed-test-consent"><input id="speedTestConsent" type="checkbox" /> <span>Concordo em realizar o teste. Meu IP e os resultados serão coletados e publicados pelo <a href="https://www.measurementlab.net/privacy/" target="_blank" rel="noopener noreferrer">M‑Lab</a>.</span></label>
+        <p class="form-error" id="speedTestError" role="alert"></p>
+        <button class="primary-button speed-test-start" id="startSpeedTest" type="button" disabled>Iniciar teste</button>
+      </section>
+    </dialog>
+
+    <dialog class="ai-chat-dialog" id="aiChatDialog">
+      <section class="ai-chat-shell glass" aria-labelledby="aiChatTitle">
+        <header class="ai-chat-header">
+          <div>
+            <span class="eyebrow" id="aiEyebrow">Comparador inteligente</span>
+            <h2 id="aiChatTitle">Chat IA unificado</h2>
+            <p id="aiSubtitle">Uma pergunta, diferentes perspectivas.</p>
+          </div>
+          <div class="ai-chat-header-actions">
+            <button class="icon-button" id="openAiSettings" type="button" aria-label="Configurar conexões" title="Configurar conexões">⚙</button>
+            <button class="icon-button" id="closeAiChat" type="button" aria-label="Fechar chat">×</button>
+          </div>
+        </header>
+
+        <div class="ai-settings" id="aiSettings" hidden>
+          <div class="ai-settings-copy"><strong id="aiSettingsTitle">Conexões com provedores</strong><span id="aiSettingsWarning">As chaves ficam somente neste navegador. Para produção, use um backend que mantenha os segredos no servidor.</span></div>
+          <div class="ai-settings-grid" id="aiSettingsGrid"></div>
+          <div class="ai-settings-actions"><button class="secondary-button" id="cancelAiSettings" type="button">Cancelar</button><button class="primary-button" id="saveAiSettings" type="button">Salvar conexões</button></div>
+        </div>
+        <div class="ai-model-picker" id="aiModelPicker" aria-label="IAs participantes"></div>
+        <div class="ai-chat-feed" id="aiChatFeed" role="log" aria-live="polite">
+          <div class="ai-chat-empty" id="aiChatEmpty">
+            <span aria-hidden="true">✦</span>
+            <h3 id="aiEmptyTitle">Compare respostas em segundos</h3>
+            <p id="aiEmptyDescription">Faça uma pergunta para visualizar como diferentes assistentes poderiam abordar o mesmo tema.</p>
+            <div class="ai-suggestions">
+              <button type="button" data-ai-suggestion="Crie uma estratégia de lançamento para um novo produto digital">Estratégia de lançamento</button>
+              <button type="button" data-ai-suggestion="Explique inteligência artificial para uma criança de 10 anos">Explicar um conceito</button>
+              <button type="button" data-ai-suggestion="Sugira melhorias para a experiência de um e-commerce">Analisar uma experiência</button>
+            </div>
+          </div>
+        </div>
+
+        <form class="ai-composer" id="aiChatForm">
+          <label class="sr-only" for="aiChatInput">Mensagem para as IAs</label>
+          <textarea id="aiChatInput" rows="1" maxlength="600" placeholder="Pergunte para todas as IAs..." required></textarea>
+          <button class="primary-button" id="sendAiChat" type="submit">Enviar <span aria-hidden="true">↑</span></button>
+        </form>
+        <p class="ai-demo-notice" id="aiNotice">As mensagens são enviadas diretamente aos provedores selecionados. Custos e políticas de cada API se aplicam.</p>
+      </section>
+    </dialog>
 
     <dialog id="siteDialog">
       <form class="dialog-card glass" id="siteForm">

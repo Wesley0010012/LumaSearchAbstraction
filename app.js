@@ -6,6 +6,8 @@ import { $, escapeHtml, fileToDataUrl } from "./js/utils/dom.js";
 import { safeParse } from "./js/services/storage.js";
 import { getGreeting, getLocale, label, language, languageNames, setLanguage, t } from "./js/services/translation.js";
 import { createDefaultSites } from "./js/services/catalog.js";
+import { createUnifiedAiChat } from "./js/components/unified-ai-chat.js";
+import { createSpeedTest } from "./js/components/speed-test.js";
 
 const { sites: STORAGE_KEY, batch: BATCH_KEY, preferences: PREFS_KEY, categories: CATEGORIES_KEY } = STORAGE_KEYS;
 const defaultSites = createDefaultSites();
@@ -23,11 +25,18 @@ let activeId = DEFAULT_SITE_ID;
 let batchIds = new Set(safeParse(localStorage.getItem(BATCH_KEY) || localStorage.getItem(`${legacyPrefix}-batch-selection-v1`), ["google", "duckduckgo"]));
 let activeCategory = "Todos";
 let shortcutsOnly = false;
+let toolNameFilter = "";
 let preferences = { ...DEFAULT_PREFERENCES, ...safeParse(localStorage.getItem(PREFS_KEY) || localStorage.getItem(`${legacyPrefix}-preferences-v1`), {}) };
+
+function normalizeSearchText(value) {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
+}
 
 function getScopedSites() {
   const categorySites = activeCategory === "Todos" ? sites : sites.filter((site) => site.category === activeCategory);
-  return shortcutsOnly ? categorySites.filter((site) => site.shortcut) : categorySites;
+  const shortcutSites = shortcutsOnly ? categorySites.filter((site) => site.shortcut) : categorySites;
+  const normalizedFilter = normalizeSearchText(toolNameFilter.trim());
+  return normalizedFilter ? shortcutSites.filter((site) => normalizeSearchText(site.name).includes(normalizedFilter)) : shortcutSites;
 }
 
 function renderCategories() {
@@ -42,12 +51,12 @@ function renderCategories() {
 function renderSites() {
   if (!sites.some((site) => site.id === activeId)) activeId = sites[0].id;
   const visibleSites = getScopedSites();
-  $("#siteList").innerHTML = visibleSites.map((site) => `
+  $("#siteList").innerHTML = visibleSites.length ? visibleSites.map((site) => `
     <div class="site-item ${site.id === activeId ? "active" : ""}" data-id="${escapeHtml(site.id)}" role="button" tabindex="0" aria-label="Usar ${escapeHtml(site.name)}">
       <span class="site-logo">${site.icon ? `<img src="${escapeHtml(site.icon)}" alt="" referrerpolicy="no-referrer" data-fallback="${escapeHtml(site.name[0].toUpperCase())}">` : escapeHtml(site.name[0].toUpperCase())}</span>
       <span class="site-name">${escapeHtml(site.name)}${site.auth ? `<span class="auth-tag" title="${escapeHtml(t("auth"))}">${escapeHtml(t("auth"))}</span>` : ""}<small>${site.category === AI_CATEGORY ? t("assistant") : site.searchUrl ? (site.id === activeId ? t("primary") : t("search")) : t("shortcut")}</small></span>
       <span class="site-actions">${site.custom ? `<button class="delete-site" type="button" data-delete="${escapeHtml(site.id)}" aria-label="Excluir ${escapeHtml(site.name)}">×</button>` : ""}${site.shortcut ? "" : `<input class="batch-check" type="checkbox" data-check="${escapeHtml(site.id)}" ${batchIds.has(site.id) ? "checked" : ""} aria-label="Incluir ${escapeHtml(site.name)} no lote">`}</span>
-    </div>`).join("");
+    </div>`).join("") : `<p class="site-list-empty" role="status">Nenhuma ferramenta encontrada.</p>`;
   document.querySelectorAll(".site-logo img").forEach((image) => image.addEventListener("error", () => { image.parentNode.textContent = image.dataset.fallback; }, { once: true }));
   const active = sites.find((site) => site.id === activeId);
   $("#activeSiteLabel").innerHTML = `${active.category === AI_CATEGORY ? t("assistant") : active.searchUrl ? t("search") : t("shortcut")}: <strong>${escapeHtml(active.name)}</strong>`;
@@ -128,6 +137,7 @@ $("#popupForm").addEventListener("submit", (event) => {
 
 $("#categoryFilters").addEventListener("click", (event) => { const button = event.target.closest("[data-category]"); if (button) { activeCategory = button.dataset.category; renderSites(); } });
 $("#shortcutFilter").addEventListener("change", (event) => { shortcutsOnly = event.target.checked; renderSites(); });
+$("#toolNameFilter").addEventListener("input", (event) => { toolNameFilter = event.target.value; renderSites(); });
 $("#siteList").addEventListener("click", (event) => {
   const checkbox = event.target.closest("[data-check]"); const deleteButton = event.target.closest("[data-delete]");
   if (checkbox) { checkbox.checked ? batchIds.add(checkbox.dataset.check) : batchIds.delete(checkbox.dataset.check); updateBatchCount(); return; }
@@ -215,6 +225,7 @@ function applyLanguage() {
   $("#primarySearch").innerHTML = `${escapeHtml(t("search"))} <span aria-hidden="true">→</span>`;
   $("#removeBackground").textContent = label("removeImage");
   renderSites(); updateTime();
+  window.dispatchEvent(new CustomEvent("luma:language-change"));
 }
 
 $("#languageSelect").addEventListener("change", (event) => {
@@ -244,6 +255,8 @@ $("#removeBackground").addEventListener("click", () => {
 $("#resetPreferences").addEventListener("click", () => { preferences = { ...DEFAULT_PREFERENCES }; localStorage.removeItem(PREFS_KEY); $("#backgroundFile").value = ""; applyPreferences(); updateTime(); });
 
 createSidebar().bind();
+createUnifiedAiChat().bind();
+createSpeedTest().bind();
 
 function updateTime() {
   const now = new Date(); const hour = now.getHours();
